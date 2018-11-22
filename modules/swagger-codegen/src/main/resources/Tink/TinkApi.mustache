@@ -1,0 +1,39 @@
+{{>licenseInfo}}
+
+package {{apiPackage}};
+
+import okhttp3.OkHttpClient;
+
+{{#imports}}import {{import}};
+{{/imports}}
+
+/**
+* TinkApi
+*/
+public class TinkApi {
+
+  private final OkHttpClient _client =  new OkHttpClient();
+  private final String _token;
+  private final String _baseUrl;
+
+  public TinkApi(String token, String baseUrl) {
+    _token = token;
+    _baseUrl = baseUrl;
+  }
+
+  public TinkApi(String token) {
+    this(token, "{{{basePath}}}");
+  }
+  {{#apiInfo}}
+  {{#apis}}
+  {{#operations}}
+  
+  public {{classname}} get{{classname}}() {
+    return new {{classname}}Impl(_token, _baseUrl, _client);
+  }
+  {{/operations}}
+  {{/apis}}
+  {{/apiInfo}}
+}
+
+

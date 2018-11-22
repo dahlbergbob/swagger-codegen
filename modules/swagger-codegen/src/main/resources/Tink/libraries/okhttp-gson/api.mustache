@@ -1,0 +1,332 @@
+{{>licenseInfo}}
+
+package {{package}};
+
+import {{invokerPackage}}.ApiCallback;
+import {{invokerPackage}}.ApiException;
+import {{invokerPackage}}.ApiResponse;
+import {{invokerPackage}}.Configuration;
+import {{invokerPackage}}.JSON;
+import {{invokerPackage}}.Pair;
+import {{invokerPackage}}.Helper;
+import {{invokerPackage}}.StringUtil;
+import {{invokerPackage}}.ProgressRequestBody;
+import {{invokerPackage}}.ProgressResponseBody;
+
+import okhttp3.Call;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import com.google.gson.reflect.TypeToken;
+
+import java.io.IOException;
+
+{{#imports}}import {{import}};
+{{/imports}}
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+{{#operations}}
+
+public interface {{classname}} {
+
+  {{#operation}}
+  /**
+   * {{summary}}
+   * {{notes}}{{#allParams}}
+   * @param {{paramName}} {{description}}{{#required}} (required){{/required}}{{^required}} (optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{/allParams}}{{#returnType}}
+   * @return ApiResponse<{{{returnType}}}{{/returnType}}{{^returnType}}Void{{/returnType}}>
+   * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+  {{#isDeprecated}}
+   * @deprecated
+  {{/isDeprecated}}
+  {{#externalDocs}}
+   * {{description}}
+   * @see <a href="{{url}}">{{summary}} Documentation</a>
+  {{/externalDocs}}
+   */
+  {{#isDeprecated}}
+  @Deprecated
+  {{/isDeprecated}}
+  ApiResponse<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Void{{/returnType}}> {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) throws ApiException;
+    
+  {{/operation}}
+}
+
+class {{classname}}Impl implements {{classname}} {
+    private OkHttpClient apiClient;
+    private String token;
+    private String baseUrl;
+
+    {{classname}}Impl(String token, String baseUrl, OkHttpClient apiClient) {
+        this.token = token;
+        this.baseUrl = baseUrl;
+        this.apiClient = apiClient;
+    }
+
+    {{#operation}}
+    /**
+     * {{summary}}
+     * {{notes}}{{#allParams}}
+     * @param {{paramName}} {{description}}{{#required}} (required){{/required}}{{^required}} (optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{/allParams}}{{#returnType}}
+     * @return {{{returnType}}}{{/returnType}}
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     {{#isDeprecated}}
+     * @deprecated
+     {{/isDeprecated}}
+     {{#externalDocs}}
+     * {{description}}
+     * @see <a href="{{url}}">{{summary}} Documentation</a>
+     {{/externalDocs}}
+     */
+     {{#isDeprecated}}
+    @Deprecated
+    {{/isDeprecated}}
+    @Override
+    public ApiResponse<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Void{{/returnType}}> {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) throws ApiException {
+      
+      Call call = {{#returnType}}{{/returnType}}{{operationId}}Call({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+      try {
+        Response resp = call.execute();
+        Type localVarReturnType = {{#returnType}}new TypeToken<{{{returnType}}}>(){}.getType(){{/returnType}}{{^returnType}}null{{/returnType}};
+        return new ApiResponse<>(
+          ({{^returnType}}Void{{/returnType}}{{#returnType}}{{{returnType}}}{{/returnType}}) Helper.handleResponse(resp, localVarReturnType),
+          resp.code(),
+          resp.headers().toMultimap()
+        );
+      }
+      catch (IOException e) {
+        throw new ApiException(e);
+      }
+    }
+
+
+    /**
+     * Build call for {{operationId}}{{#allParams}}
+     * @param {{paramName}} {{description}}{{#required}} (required){{/required}}{{^required}} (optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{/allParams}}
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     {{#isDeprecated}}
+     * @deprecated
+     {{/isDeprecated}}
+     {{#externalDocs}}
+     * {{description}}
+     * @see <a href="{{url}}">{{summary}} Documentation</a>
+     {{/externalDocs}}
+     */
+    {{#isDeprecated}}
+    @Deprecated
+    {{/isDeprecated}}
+    private Call {{operationId}}Call({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) throws ApiException {
+      RequestBody reqBody = {{#bodyParam}}RequestBody.create(MediaType.get("application/json"),new JSON().serialize({{paramName}})){{/bodyParam}}{{^bodyParam}}null{{/bodyParam}};
+      
+      // create path and map variables
+      String path = "{{{path}}}"{{#pathParams}}
+          .replaceAll("\\{" + "{{baseName}}" + "\\}", StringUtil.escapeString({{{paramName}}}.toString())){{/pathParams}};
+      
+      List<Pair> localVarQueryParams = new ArrayList<Pair>();
+      List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();{{#queryParams}}
+      if ({{paramName}} != null) {
+        {{#collectionFormat}}localVarCollectionQueryParams.addAll(StringUtil.parameterToPairs("{{{collectionFormat}}}", {{/collectionFormat}}{{^collectionFormat}}localVarQueryParams.addAll(StringUtil.parameterToPair({{/collectionFormat}}"{{baseName}}", {{paramName}}));
+      }
+      {{/queryParams}}
+      
+      
+      
+      /* Only for OAuthService.java
+      Map<String, Object> localVarFormParams = new HashMap<String, Object>();{{#formParams}}
+      if ({{paramName}} != null)
+        localVarFormParams.put("{{baseName}}", {{paramName}});{{/formParams}}
+      */
+
+      Request req = new Request.Builder()
+          .url(baseUrl + path){{#produces}}
+          .addHeader("Accept","{{{mediaType}}}"){{/produces}}{{#consumes}}
+          .addHeader("Content-Type","{{{mediaType}}}"){{/consumes}}
+          .addHeader("Authorization", "Bearer "+ token)
+          .method("{{httpMethod}}",reqBody)
+          .build();
+
+      return apiClient.newCall(req);
+      
+      //return apiClient.buildCall(path, "{{httpMethod}}", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener);
+    }
+    {{/operation}}
+
+
+
+    {{! ---------------------------------------------------------------------- }}
+
+
+
+    {{^operation}}
+    /**
+     * Build call for {{operationId}}{{#allParams}}
+     * @param {{paramName}} {{description}}{{#required}} (required){{/required}}{{^required}} (optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{/allParams}}
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     {{#isDeprecated}}
+     * @deprecated
+     {{/isDeprecated}}
+        {{#externalDocs}}
+     * {{description}}
+     * @see <a href="{{url}}">{{summary}} Documentation</a>
+        {{/externalDocs}}
+     */
+    {{#isDeprecated}}
+    @Deprecated
+    {{/isDeprecated}}
+    public Call {{operationId}}Call({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) throws ApiException {
+        Object localVarPostBody = {{#bodyParam}}{{paramName}}{{/bodyParam}}{{^bodyParam}}null{{/bodyParam}};
+
+        // create path and map variables
+        String path = "{{{path}}}"{{#pathParams}}
+            .replaceAll("\\{" + "{{baseName}}" + "\\}", StringUtil.escapeString({{{paramName}}}.toString())){{/pathParams}};
+    
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();{{#queryParams}}
+        if ({{paramName}} != null) {
+          {{#collectionFormat}}localVarCollectionQueryParams.addAll(StringUtil.parameterToPairs("{{{collectionFormat}}}", {{/collectionFormat}}{{^collectionFormat}}localVarQueryParams.addAll(apiClient.parameterToPair({{/collectionFormat}}"{{baseName}}", {{paramName}}));
+        }
+        {{/queryParams}}
+
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();{{#headerParams}}
+        if ({{paramName}} != null)
+        localVarHeaderParams.put("{{baseName}}", StringUtil.parameterToString({{paramName}}));{{/headerParams}}
+      
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();{{#formParams}}
+        if ({{paramName}} != null)
+        localVarFormParams.put("{{baseName}}", {{paramName}});{{/formParams}}
+
+        final String[] localVarAccepts = {
+            {{#produces}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/produces}}
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) localVarHeaderParams.put("Accept", localVarAccept);
+
+        final String[] localVarContentTypes = {
+            {{#consumes}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/consumes}}
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+        localVarHeaderParams.put("Content-Type", localVarContentType);
+
+        String[] localVarAuthNames = new String[] { {{#authMethods}}"{{name}}"{{#hasMore}}, {{/hasMore}}{{/authMethods}} };
+        return apiClient.buildCall(path, "{{httpMethod}}", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener);
+    }
+
+      
+    {{#isDeprecated}}
+    @Deprecated
+    {{/isDeprecated}}
+    @SuppressWarnings("rawtypes")
+    private Call {{operationId}}ValidateBeforeCall({{#allParams}}{{{dataType}}} {{paramName}}, {{/allParams}}final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        {{#allParams}}{{#required}}
+        // verify the required parameter '{{paramName}}' is set
+        if ({{paramName}} == null) {
+            throw new ApiException("Missing the required parameter '{{paramName}}' when calling {{operationId}}(Async)");
+        }
+        {{/required}}{{/allParams}}
+
+        Call call = {{operationId}}Call({{#allParams}}{{paramName}}, {{/allParams}}progressListener, progressRequestListener);
+        return call;
+    }
+
+    /**
+     * {{summary}}
+     * {{notes}}{{#allParams}}
+     * @param {{paramName}} {{description}}{{#required}} (required){{/required}}{{^required}} (optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{/allParams}}{{#returnType}}
+     * @return {{returnType}}{{/returnType}}
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     {{#isDeprecated}}
+     * @deprecated
+     {{/isDeprecated}}
+        {{#externalDocs}}
+     * {{description}}
+     * @see <a href="{{url}}">{{summary}} Documentation</a>
+        {{/externalDocs}}
+     */
+    {{#isDeprecated}}
+    @Deprecated
+    {{/isDeprecated}}
+    public {{#returnType}}{{{returnType}}} {{/returnType}}{{^returnType}}void {{/returnType}}{{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) throws ApiException {
+        {{#returnType}}ApiResponse<{{{returnType}}}> resp = {{/returnType}}{{operationId}}WithHttpInfo({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});{{#returnType}}
+        return resp.getData();{{/returnType}}
+    }
+
+    /**
+     * {{summary}}
+     * {{notes}}{{#allParams}}
+     * @param {{paramName}} {{description}}{{#required}} (required){{/required}}{{^required}} (optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{/allParams}}
+     * @return ApiResponse&lt;{{#returnType}}{{returnType}}{{/returnType}}{{^returnType}}Void{{/returnType}}&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     {{#isDeprecated}}
+     * @deprecated
+     {{/isDeprecated}}
+        {{#externalDocs}}
+     * {{description}}
+     * @see <a href="{{url}}">{{summary}} Documentation</a>
+        {{/externalDocs}}
+     */
+    {{#isDeprecated}}
+    @Deprecated
+    {{/isDeprecated}}
+    public ApiResponse<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Void{{/returnType}}> {{operationId}}WithHttpInfo({{#allParams}}{{#useBeanValidation}}{{>beanValidationQueryParams}}{{/useBeanValidation}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) throws ApiException {
+        Call call = {{operationId}}ValidateBeforeCall({{#allParams}}{{paramName}}, {{/allParams}}null, null);
+        {{#returnType}}Type localVarReturnType = new TypeToken<{{{returnType}}}>(){}.getType();
+        return apiClient.execute(call, localVarReturnType);{{/returnType}}{{^returnType}}return apiClient.execute(call);{{/returnType}}
+    }
+
+    /**
+     * {{summary}} (asynchronously)
+     * {{notes}}{{#allParams}}
+     * @param {{paramName}} {{description}}{{#required}} (required){{/required}}{{^required}} (optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{/allParams}}
+     * @param callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     {{#isDeprecated}}
+     * @deprecated
+     {{/isDeprecated}}
+        {{#externalDocs}}
+     * {{description}}
+     * @see <a href="{{url}}">{{summary}} Documentation</a>
+        {{/externalDocs}}
+     */
+    {{#isDeprecated}}
+    @Deprecated
+    {{/isDeprecated}}
+    public Call {{operationId}}Async({{#allParams}}{{{dataType}}} {{paramName}}, {{/allParams}}final ApiCallback<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Void{{/returnType}}> callback) throws ApiException {
+
+        ProgressResponseBody.ProgressListener progressListener = null;
+        ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
+
+        if (callback != null) {
+            progressListener = new ProgressResponseBody.ProgressListener() {
+                @Override
+                public void update(long bytesRead, long contentLength, boolean done) {
+                    callback.onDownloadProgress(bytesRead, contentLength, done);
+                }
+            };
+
+            progressRequestListener = new ProgressRequestBody.ProgressRequestListener() {
+                @Override
+                public void onRequestProgress(long bytesWritten, long contentLength, boolean done) {
+                    callback.onUploadProgress(bytesWritten, contentLength, done);
+                }
+            };
+        }
+
+        Call call = {{operationId}}ValidateBeforeCall({{#allParams}}{{paramName}}, {{/allParams}}progressListener, progressRequestListener);
+        {{#returnType}}Type localVarReturnType = new TypeToken<{{{returnType}}}>(){}.getType();
+        apiClient.executeAsync(call, localVarReturnType, callback);{{/returnType}}{{^returnType}}apiClient.executeAsync(call, callback);{{/returnType}}
+        return call;
+    }
+    {{/operation}}
+}
+{{/operations}}

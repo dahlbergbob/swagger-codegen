@@ -1,0 +1,30 @@
+{{>licenseInfo}}
+
+package {{invokerPackage}};
+
+/**
+ * Fail
+ */
+public class Fail {
+
+	private final int code;
+	private final String message;
+
+	public Fail(int code, String message) {
+		this.code = code;
+		this.message = message;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public int getCode() {
+		return code;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("Fail(%s, %s)", code, message);
+	}
+}

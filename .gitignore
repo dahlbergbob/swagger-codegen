@@ -10,6 +10,7 @@ version.properties
 .classpath
 lib/*
 build/*
+output/*
 generated-files/*
 generated-sources/*
 generated-code/*

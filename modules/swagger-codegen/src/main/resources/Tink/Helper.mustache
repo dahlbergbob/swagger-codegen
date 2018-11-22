@@ -1,0 +1,59 @@
+{{>licenseInfo}}
+
+package {{invokerPackage}};
+
+import java.io.IOException;
+import java.lang.reflect.Type;
+import okhttp3.Response;
+
+public class Helper {
+
+  /**
+   * Handle the given response, return the deserialized object when the response is successful.
+   *
+   * @param <T> Type
+   * @param response Response
+   * @param returnType Return type
+   * @throws ApiException If the response has a unsuccessful status code or
+   *   fail to deserialize the response body
+   * @return Type
+   */
+  public static <T> T handleResponse(Response response, Type returnType) throws ApiException {
+    if (response.isSuccessful()) {
+      if (returnType == null || response.code() == 204) {
+        // returning null if the returnType is not defined,
+        // or the status code is 204 (No Content)
+        if (response.body() != null) {
+          try {
+            response.body().close();
+          } catch (Exception e) {
+            throw new ApiException(response.message(), e, response.code(), response.headers().toMultimap());
+          }
+        }
+        return null;
+      } else {
+        String respBody;
+        try {
+          if (response.body() != null) {
+            respBody = response.body().string();
+          } else {
+            respBody = null;
+          }
+        } catch (IOException e) {
+          throw new ApiException(e);
+        }
+        return new JSON().deserialize(respBody, returnType);
+      }
+    } else {
+      String respBody = null;
+      if (response.body() != null) {
+        try {
+          respBody = response.body().string();
+        } catch (IOException e) {
+          throw new ApiException(response.message(), e, response.code(), response.headers().toMultimap());
+        }
+      }
+      throw new ApiException(response.message(), response.code(), response.headers().toMultimap(), respBody);
+    }
+  }
+}

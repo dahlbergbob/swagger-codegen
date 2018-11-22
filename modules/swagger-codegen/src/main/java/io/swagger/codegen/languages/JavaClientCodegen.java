@@ -8,6 +8,8 @@ import io.swagger.codegen.languages.features.BeanValidationFeatures;
 import io.swagger.codegen.languages.features.GzipFeatures;
 import io.swagger.codegen.languages.features.PerformBeanValidationFeatures;
 
+import io.swagger.models.Model;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -174,7 +176,7 @@ public class JavaClientCodegen extends AbstractJavaCodegen
         if(!("resttemplate".equals(getLibrary()) || REST_ASSURED.equals(getLibrary()))) {
             supportingFiles.add(new SupportingFile("StringUtil.mustache", invokerFolder, "StringUtil.java"));
         }
-
+        
         // google-api-client doesn't use the Swagger auth, because it uses Google Credential directly (HttpRequestInitializer)
         if (!("google-api-client".equals(getLibrary()) || REST_ASSURED.equals(getLibrary()))) {
             supportingFiles.add(new SupportingFile("auth/HttpBasicAuth.mustache", authFolder, "HttpBasicAuth.java"));
@@ -308,6 +310,20 @@ public class JavaClientCodegen extends AbstractJavaCodegen
                 supportingFiles.add(new SupportingFile("CustomInstantDeserializer.mustache", invokerFolder, "CustomInstantDeserializer.java"));
             }
         }
+
+        // TINK
+        supportingFiles.add(new SupportingFile("Helper.mustache", invokerFolder, "Helper.java"));
+        supportingFiles.add(new SupportingFile("TinkApi.mustache", apiFolder, "TinkApi.java"));
+        supportingFiles.add(new SupportingFile("Fail.mustache", invokerFolder, "Fail.java"));
+        
+        supportingFiles.remove(new SupportingFile("auth/HttpBasicAuth.mustache", authFolder, "HttpBasicAuth.java"));
+        supportingFiles.remove(new SupportingFile("auth/ApiKeyAuth.mustache", authFolder, "ApiKeyAuth.java"));
+        supportingFiles.remove(new SupportingFile("auth/OAuth.mustache", authFolder, "OAuth.java"));
+        supportingFiles.remove(new SupportingFile("auth/OAuthFlow.mustache", authFolder, "OAuthFlow.java"));
+        
+        supportingFiles.remove(new SupportingFile("auth/Authentication.mustache", authFolder, "Authentication.java"));
+        supportingFiles.remove(new SupportingFile("auth/OAuthOkHttpClient.mustache", authFolder, "OAuthOkHttpClient.java"));
+        supportingFiles.remove(new SupportingFile("ApiClient.mustache", invokerFolder, "ApiClient.java"));
     }
 
     private boolean usesAnyRetrofitLibrary() {
@@ -474,6 +490,8 @@ public class JavaClientCodegen extends AbstractJavaCodegen
                 model.imports.add("JsonCreator");
             }
         }
+        model.imports.remove("ApiModel");
+        model.imports.remove("ApiModelProperty");
     }
 
     @SuppressWarnings("unchecked")

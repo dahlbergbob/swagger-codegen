@@ -1,0 +1,267 @@
+{{>licenseInfo}}
+
+package {{invokerPackage}};
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
+import com.google.gson.TypeAdapter;
+import com.google.gson.internal.bind.util.ISO8601Utils;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
+import com.google.gson.JsonElement;
+import io.gsonfire.GsonFireBuilder;
+import io.gsonfire.TypeSelector;
+
+{{#models.0}}
+import {{modelPackage}}.*;
+{{/models.0}}
+import java.time.Instant;
+import okio.ByteString;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.lang.reflect.Type;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.ParsePosition;
+{{#java8}}
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+{{/java8}}
+import java.util.Date;
+import java.util.Map;
+import java.util.HashMap;
+
+public class JSON {
+    private Gson gson;
+    private boolean isLenientOnJson = false;
+    {{#jsr310}}
+    private OffsetDateTimeTypeAdapter offsetDateTimeTypeAdapter = new OffsetDateTimeTypeAdapter();
+    private LocalDateTypeAdapter localDateTypeAdapter = new LocalDateTypeAdapter();
+    {{/jsr310}}
+    private ByteArrayAdapter byteArrayAdapter = new ByteArrayAdapter();
+
+    public static GsonBuilder createGson() {
+        GsonFireBuilder fireBuilder = new GsonFireBuilder()
+        {{#parent}}
+          .registerTypeSelector({{classname}}.class, new TypeSelector() {
+            @Override
+            public Class getClassForElement(JsonElement readElement) {
+                Map classByDiscriminatorValue = new HashMap();
+                {{#children}}
+                classByDiscriminatorValue.put("{{name}}".toUpperCase(), {{classname}}.class);
+                {{/children}}
+                classByDiscriminatorValue.put("{{classname}}".toUpperCase(), {{classname}}.class);
+                return getClassByDiscriminator(
+                                           classByDiscriminatorValue,
+                                           getDiscriminatorValue(readElement, "{{discriminator}}"));
+            }
+          })
+        {{/parent}}
+        ;
+        GsonBuilder builder = fireBuilder.createGsonBuilder();
+        {{#disableHtmlEscaping}}
+        builder.disableHtmlEscaping();
+        {{/disableHtmlEscaping}}
+        return builder;
+    }
+
+    private static String getDiscriminatorValue(JsonElement readElement, String discriminatorField) {
+        JsonElement element = readElement.getAsJsonObject().get(discriminatorField);
+        if(null == element) {
+            throw new IllegalArgumentException("missing discriminator field: <" + discriminatorField + ">");
+        }
+        return element.getAsString();
+    }
+
+    private static Class getClassByDiscriminator(Map classByDiscriminatorValue, String discriminatorValue) {
+        Class clazz = (Class) classByDiscriminatorValue.get(discriminatorValue.toUpperCase());
+        if(null == clazz) {
+            throw new IllegalArgumentException("cannot determine model class of name: <" + discriminatorValue + ">");
+        }
+        return clazz;
+    }
+
+    public JSON() {
+        gson = createGson()
+            {{#jsr310}}
+            .registerTypeAdapter(OffsetDateTime.class, offsetDateTimeTypeAdapter)
+            .registerTypeAdapter(LocalDate.class, localDateTypeAdapter)
+            {{/jsr310}}
+            .registerTypeAdapter(byte[].class, byteArrayAdapter)
+            .create();
+    }
+
+    /**
+     * Get Gson.
+     *
+     * @return Gson
+     */
+    public Gson getGson() {
+        return gson;
+    }
+
+    /**
+     * Set Gson.
+     *
+     * @param gson Gson
+     * @return JSON
+     */
+    public JSON setGson(Gson gson) {
+        this.gson = gson;
+        return this;
+    }
+
+    public JSON setLenientOnJson(boolean lenientOnJson) {
+        isLenientOnJson = lenientOnJson;
+        return this;
+    }
+
+    /**
+     * Serialize the given Java object into JSON string.
+     *
+     * @param obj Object
+     * @return String representation of the JSON
+     */
+    public String serialize(Object obj) {
+        return gson.toJson(obj);
+    }
+
+    /**
+     * Deserialize the given JSON string to Java object.
+     *
+     * @param <T>        Type
+     * @param body       The JSON string
+     * @param returnType The type to deserialize into
+     * @return The deserialized Java object
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T deserialize(String body, Type returnType) {
+        try {
+            if (isLenientOnJson) {
+                JsonReader jsonReader = new JsonReader(new StringReader(body));
+                // see https://google-gson.googlecode.com/svn/trunk/gson/docs/javadocs/com/google/gson/stream/JsonReader.html#setLenient(boolean)
+                jsonReader.setLenient(true);
+                return gson.fromJson(jsonReader, returnType);
+            } else {
+                return gson.fromJson(body, returnType);
+            }
+        } catch (JsonParseException e) {
+            // Fallback processing when failed to parse JSON form response body:
+            // return the response body string directly for the String return type;
+            if (returnType.equals(String.class))
+                return (T) body;
+            else throw (e);
+        }
+    }
+
+    /**
+     * Gson TypeAdapter for Byte Array type
+     */
+    public class ByteArrayAdapter extends TypeAdapter<byte[]> {
+
+        @Override
+        public void write(JsonWriter out, byte[] value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+            } else {
+                out.value(ByteString.of(value).base64());
+            }
+        }
+
+        @Override
+        public byte[] read(JsonReader in) throws IOException {
+            switch (in.peek()) {
+                case NULL:
+                    in.nextNull();
+                    return null;
+                default:
+                    String bytesAsBase64 = in.nextString();
+                    ByteString byteString = ByteString.decodeBase64(bytesAsBase64);
+                    return byteString.toByteArray();
+            }
+        }
+    }
+    
+    {{#jsr310}}
+    /**
+     * Gson TypeAdapter for JSR310 OffsetDateTime type
+     */
+    public static class OffsetDateTimeTypeAdapter extends TypeAdapter<OffsetDateTime> {
+
+        public OffsetDateTimeTypeAdapter() {}
+
+        @Override
+        public void write(JsonWriter out, OffsetDateTime date) throws IOException {
+            if (date == null) {
+                out.nullValue();
+            } else {
+                out.value(date.toInstant().toEpochMilli());
+            }
+        }
+
+        @Override
+        public OffsetDateTime read(JsonReader in) throws IOException {
+            switch (in.peek()) {
+                case NULL:
+                    in.nextNull();
+                    return null;
+                default:
+                    Long ts = in.nextLong();
+                    Instant instant = Instant.ofEpochMilli(ts);
+                    return instant.atOffset(OffsetDateTime.now().toZonedDateTime().getOffset());
+            }
+        }
+    }
+
+    /**
+     * Gson TypeAdapter for JSR310 LocalDate type
+     */
+    public class LocalDateTypeAdapter extends TypeAdapter<LocalDate> {
+
+        private DateTimeFormatter formatter;
+
+        public LocalDateTypeAdapter() {
+            this(DateTimeFormatter.ISO_LOCAL_DATE);
+        }
+
+        public LocalDateTypeAdapter(DateTimeFormatter formatter) {
+            this.formatter = formatter;
+        }
+
+        public void setFormat(DateTimeFormatter dateFormat) {
+            this.formatter = dateFormat;
+        }
+
+        @Override
+        public void write(JsonWriter out, LocalDate date) throws IOException {
+            if (date == null) {
+                out.nullValue();
+            } else {
+                out.value(formatter.format(date));
+            }
+        }
+
+        @Override
+        public LocalDate read(JsonReader in) throws IOException {
+            switch (in.peek()) {
+                case NULL:
+                    in.nextNull();
+                    return null;
+                default:
+                    String date = in.nextString();
+                    return LocalDate.parse(date, formatter);
+            }
+        }
+    }
+
+    public JSON setLocalDateFormat(DateTimeFormatter dateFormat) {
+        localDateTypeAdapter.setFormat(dateFormat);
+        return this;
+    }
+
+    {{/jsr310}}
+
+}

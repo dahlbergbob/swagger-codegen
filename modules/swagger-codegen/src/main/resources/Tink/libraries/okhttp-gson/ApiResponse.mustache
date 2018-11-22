@@ -1,0 +1,63 @@
+{{>licenseInfo}}
+
+package {{invokerPackage}};
+
+import java.util.List;
+import java.util.Map;
+
+public class ApiResponse<T> {
+
+  private final int code;
+  private final boolean success;
+  private final Fail fail;
+  private final T response;
+  private final Map<String, List<String>> headers;
+    
+  public ApiResponse(T response, int code, Map<String, List<String>> headers) {
+    success = true;
+    fail = null;
+    this.response = response;
+    this.code = code;
+    this.headers = headers; 
+  }
+
+  public ApiResponse(Fail fail, int code, Map<String, List<String>> headers) {
+    success = false;
+    response = null;
+    this.fail = fail;
+    this.code = code;
+    this.headers = headers;
+  }
+
+  public boolean isSuccess() {
+    return success;
+  }
+
+  public Fail getFailure() {
+    return fail;
+  }
+
+  public T getResponse() {
+    return response;
+  }
+
+  public int getStatusCode() {
+    return code;
+  }
+
+  public Map<String, List<String>> getHeaders() {
+    return headers;
+  }
+
+  @Override
+  public String toString() {
+    if(isSuccess()) {
+      assert response != null;
+      return "ApiResponse("+response.toString()+")";
+    }
+    else {
+      assert fail != null;
+      return "ApiResponse("+fail.toString()+")";
+    }
+  }
+}
