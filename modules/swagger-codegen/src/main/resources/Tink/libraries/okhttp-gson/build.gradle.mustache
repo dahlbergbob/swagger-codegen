@@ -105,11 +105,7 @@ dependencies {
     compile 'com.squareup.okhttp:logging-interceptor:2.7.5'
     compile 'com.google.code.gson:gson:2.8.1'
     compile 'io.gsonfire:gson-fire:1.8.0'
-    {{#joda}}
-    compile 'joda-time:joda-time:2.9.9'
-    {{/joda}}
-    {{#threetenbp}}
-    compile 'org.threeten:threetenbp:1.3.5'
-    {{/threetenbp}}
-    testCompile 'junit:junit:4.12'
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'com.squareup.okhttp3:mockwebserver:2.7.5'
 }

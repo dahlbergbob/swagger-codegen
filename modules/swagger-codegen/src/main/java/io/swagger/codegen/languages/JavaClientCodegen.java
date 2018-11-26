@@ -324,6 +324,7 @@ public class JavaClientCodegen extends AbstractJavaCodegen
         supportingFiles.remove(new SupportingFile("auth/Authentication.mustache", authFolder, "Authentication.java"));
         supportingFiles.remove(new SupportingFile("auth/OAuthOkHttpClient.mustache", authFolder, "OAuthOkHttpClient.java"));
         supportingFiles.remove(new SupportingFile("ApiClient.mustache", invokerFolder, "ApiClient.java"));
+        supportingFiles.remove(new SupportingFile("GzipRequestInterceptor.mustache", invokerFolder, "GzipRequestInterceptor.java"));
     }
 
     private boolean usesAnyRetrofitLibrary() {

@@ -3,17 +3,22 @@
 package {{package}};
 
 import {{invokerPackage}}.ApiException;
+import {{invokerPackage}}.ApiResponse;
 {{#imports}}import {{import}};
 {{/imports}}
+import okhttp3.OkHttpClient;
+import okhttp3.mockwebserver.MockWebServer;
+
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.Ignore;
 
-{{^fullJavaUtil}}
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-{{/fullJavaUtil}}
 
 /**
  * API tests for {{classname}}
@@ -21,7 +26,31 @@ import java.util.Map;
 @Ignore
 public class {{classname}}Test {
 
-    private final {{classname}} api = new {{classname}}();
+    private final String token = "qwertyuiop";
+    String baseUrl = "https://changeme";
+    MockWebServer server = null;
+
+    @Before
+    public void setUp() {
+        try {
+            server = new MockWebServer();
+            server.start();
+            baseUrl = server.url("").toString();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @After
+    public void tearDown() {
+        try {
+            if(server != null) server.shutdown();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     {{#operations}}{{#operation}}
     /**
@@ -29,16 +58,21 @@ public class {{classname}}Test {
      *
      * {{notes}}
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException   if the Api call fails
      */
     @Test
     public void {{operationId}}Test() throws ApiException {
+
+        // TODO: Enqueue responses
+        // server.enqueue(new MockResponse().setBody("hello, world!"));
+    
+        {{classname}} api = new {{classname}}Impl(token, baseUrl, new OkHttpClient());
+    
         {{#allParams}}
         {{{dataType}}} {{paramName}} = null;
         {{/allParams}}
-        {{#returnType}}{{{returnType}}} response = {{/returnType}}api.{{operationId}}({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
-
+        {{#returnType}}ApiResponse<{{{returnType}}}> response = {{/returnType}}api.{{operationId}}({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+    
         // TODO: test validations
     }
     {{/operation}}{{/operations}}
