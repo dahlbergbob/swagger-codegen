@@ -2238,7 +2238,15 @@ public class DefaultCodegen {
 
         if (parameters != null) {
             for (Parameter param : parameters) {
+                
                 CodegenParameter p = fromParameter(param, imports);
+
+                if (param instanceof BodyParameter) {
+                    if(p.dataType.equals("AuthenticationContext") || p.dataType.equals("AuthenticatedUser")) {
+                        continue;
+                    }
+                }
+                
                 // rename parameters to make sure all of them have unique names
                 if (ensureUniqueParams) {
                     while (true) {
