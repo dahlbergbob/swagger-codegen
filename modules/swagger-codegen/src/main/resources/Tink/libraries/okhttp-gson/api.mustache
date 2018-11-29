@@ -137,7 +137,13 @@ class {{classname}}Impl implements {{classname}} {
     {{/isDeprecated}}
     private Call {{operationId}}Call({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) throws ApiException {
       RequestBody reqBody = {{#bodyParam}}RequestBody.create(MediaType.get("application/json"),new JSON().serialize({{paramName}})){{/bodyParam}}{{^bodyParam}}null{{/bodyParam}};
+      {{#formParams}}{{^hasMore}}
+      FormBody.Builder formBodyBuilder = new FormBody.Builder();{{/hasMore}}{{/formParams}}{{#formParams}}
+      if ({{paramName}} != null)
+        formBodyBuilder.add("{{baseName}}", {{paramName}});{{^hasMore}}
       
+      reqBody = formBodyBuilder.build();
+      {{/hasMore}}{{/formParams}}
       // create path and map variables
       String path = "{{{path}}}"{{#pathParams}}
           .replaceAll("\\{" + "{{baseName}}" + "\\}", StringUtil.escapeString({{{paramName}}}.toString())){{/pathParams}};
@@ -148,26 +154,16 @@ class {{classname}}Impl implements {{classname}} {
         {{#collectionFormat}}localVarCollectionQueryParams.addAll(StringUtil.parameterToPairs("{{{collectionFormat}}}", {{/collectionFormat}}{{^collectionFormat}}localVarQueryParams.addAll(StringUtil.parameterToPair({{/collectionFormat}}"{{baseName}}", {{paramName}}));
       }
       {{/queryParams}}
-      
-      
-      
-      /* Only for OAuthService.java
-      Map<String, Object> localVarFormParams = new HashMap<String, Object>();{{#formParams}}
-      if ({{paramName}} != null)
-        localVarFormParams.put("{{baseName}}", {{paramName}});{{/formParams}}
-      */
 
       Request req = new Request.Builder()
           .url(baseUrl + path){{#produces}}
           .addHeader("Accept","{{{mediaType}}}"){{/produces}}{{#consumes}}
           .addHeader("Content-Type","{{{mediaType}}}"){{/consumes}}
           .addHeader("Authorization", "Bearer "+ token)
-          .method("{{httpMethod}}",reqBody)
+          .method("{{httpMethod}}", reqBody)
           .build();
 
       return apiClient.newCall(req);
-      
-      //return apiClient.buildCall(path, "{{httpMethod}}", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener);
     }
     {{/operation}}
 
