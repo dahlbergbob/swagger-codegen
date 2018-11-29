@@ -14,16 +14,25 @@ public class TinkApi {
 
   private final OkHttpClient _client =  new OkHttpClient();
   private final String _token;
-  private final String _baseUrl;
-
-  public TinkApi(String token, String baseUrl) {
-    _token = token;
-    _baseUrl = baseUrl;
-  }
-
+  private final String _baseUrl = "https://api.tink.se";
+  
+  /**
+   * Used to create an authorized client.
+   * @param token   The access token to use for authorization
+   */
   public TinkApi(String token) {
-    this(token, "{{{basePath}}}");
+    _token = token;
   }
+
+  /**
+   * Used to create an unauthorized client.
+   */
+  public TinkApi() {
+    this("");
+  }
+  
+  {{! use basePath - param with tripple curls in future for basePath defaults  }}
+  
   {{#apiInfo}}
   {{#apis}}
   {{#operations}}

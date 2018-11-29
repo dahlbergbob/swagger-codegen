@@ -161,9 +161,12 @@ class {{classname}}Impl implements {{classname}} {
           .url(baseUrl + path){{#produces}}
           .addHeader("Accept","{{{mediaType}}}"){{/produces}}{{#consumes}}
           .addHeader("Content-Type","{{{mediaType}}}"){{/consumes}}
-          .addHeader("Authorization", "Bearer "+ token)
           .method("{{httpMethod}}", reqBody)
           .build();
+
+      if(token != null && !token.isEmpty()) {
+        req = req.newBuilder().addHeader("Authorization", "Bearer "+ token).build();
+      }
 
       return apiClient.newCall(req);
     }
