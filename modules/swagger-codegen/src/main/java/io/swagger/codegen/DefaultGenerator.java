@@ -834,6 +834,9 @@ public class DefaultGenerator extends AbstractGenerator implements Generator {
         List<Tag> tags = new ArrayList<Tag>();
 
         List<String> tagNames = operation.getTags();
+        if(tagNames.contains("HIDE")) {
+            return;
+        }
         List<Tag> swaggerTags = swagger.getTags();
         if (tagNames != null) {
             if (swaggerTags == null) {
