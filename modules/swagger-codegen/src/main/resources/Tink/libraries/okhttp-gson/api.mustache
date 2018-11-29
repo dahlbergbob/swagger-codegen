@@ -8,6 +8,7 @@ import {{invokerPackage}}.ApiResponse;
 import {{invokerPackage}}.Configuration;
 import {{invokerPackage}}.JSON;
 import {{invokerPackage}}.Pair;
+import {{invokerPackage}}.Fail;
 import {{invokerPackage}}.Helper;
 import {{invokerPackage}}.StringUtil;
 import {{invokerPackage}}.ProgressRequestBody;
@@ -92,15 +93,25 @@ class {{classname}}Impl implements {{classname}} {
     @Override
     public ApiResponse<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Void{{/returnType}}> {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) throws ApiException {
       
-      Call call = {{#returnType}}{{/returnType}}{{operationId}}Call({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
       try {
+        Call call = {{#returnType}}{{/returnType}}{{operationId}}Call({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
         Response resp = call.execute();
         Type localVarReturnType = {{#returnType}}new TypeToken<{{{returnType}}}>(){}.getType(){{/returnType}}{{^returnType}}null{{/returnType}};
-        return new ApiResponse<>(
-          ({{^returnType}}Void{{/returnType}}{{#returnType}}{{{returnType}}}{{/returnType}}) Helper.handleResponse(resp, localVarReturnType),
-          resp.code(),
-          resp.headers().toMultimap()
-        );
+        {{^returnType}}Void{{/returnType}}{{#returnType}}{{{returnType}}}{{/returnType}} parsed = ({{^returnType}}Void{{/returnType}}{{#returnType}}{{{returnType}}}{{/returnType}}) Helper.handleResponse(resp, localVarReturnType);
+        if(parsed != null) {
+          return new ApiResponse<>(
+            parsed,
+            resp.code(),
+            resp.headers().toMultimap()
+          );
+        }
+        else {
+          return new ApiResponse<>(
+            new Fail(resp.code(), resp.message()),
+            resp.code(),
+            resp.headers().toMultimap()
+          );
+        }
       }
       catch (IOException e) {
         throw new ApiException(e);

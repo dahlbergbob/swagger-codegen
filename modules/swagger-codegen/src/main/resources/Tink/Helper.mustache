@@ -13,7 +13,7 @@ public class Helper {
    *
    * @param <T> Type
    * @param response Response
-   * @param returnType Return type
+   * @param returnType Return type or null if the request isn't successful
    * @throws ApiException If the response has a unsuccessful status code or
    *   fail to deserialize the response body
    * @return Type
@@ -45,6 +45,7 @@ public class Helper {
         return new JSON().deserialize(respBody, returnType);
       }
     } else {
+      /*
       String respBody = null;
       if (response.body() != null) {
         try {
@@ -53,7 +54,8 @@ public class Helper {
           throw new ApiException(response.message(), e, response.code(), response.headers().toMultimap());
         }
       }
-      throw new ApiException(response.message(), response.code(), response.headers().toMultimap(), respBody);
+      */
+      return null;
     }
   }
 }
